@@ -73,7 +73,11 @@ jobs:
           GET A QUOTE TEST SUMMARY
           ========================
           
-          ${{ steps.playwright_tests.outcome == 'success' && format('Status: PASSED\n\nGet a quote works as expected: {0}', github.event.head_commit.timestamp) || format('Status: FAILED\n\nIn events status is fail please contact the software team\n\nTime: {0}', github.event.head_commit.timestamp) }}
+          Status: ${{ steps.playwright_tests.outcome == 'success' && '✅ PASSED' || '❌ FAILED' }}
+          
+          ${{ steps.playwright_tests.outcome == 'success' && 'Get a quote works as expected' || 'In events status is fail please contact the software team' }}
+          
+          Time: ${{ github.event.head_commit.timestamp }}
           
           ================================================================================
           TECHNICAL REPORT
