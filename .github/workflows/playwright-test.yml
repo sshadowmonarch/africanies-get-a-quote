@@ -9,9 +9,9 @@ on:
   pull_request:
     branches: [ main, master ]
   
-  # Run every 8 hours starting at 6 AM UTC (6 AM, 2 PM, 10 PM)
+  # Run every 8 hours at Nigeria times: 6 AM, 2 PM, 10 PM (UTC+1: 5 AM, 1 PM, 9 PM UTC)
   schedule:
-    - cron: '0 6,14,22 * * *'
+    - cron: '0 5,13,21 * * *'
   
   # Allow manual trigger from GitHub Actions UI
   workflow_dispatch:
