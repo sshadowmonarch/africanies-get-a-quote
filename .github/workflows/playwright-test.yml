@@ -67,7 +67,7 @@ jobs:
         username: ${{ secrets.EMAIL_USERNAME }}
         password: ${{ secrets.EMAIL_PASSWORD }}
         subject: "Playwright Test Results - ${{ steps.playwright_tests.outcome == 'success' && '✅ PASSED' || '❌ FAILED' }}"
-        to: armstrong.p@africanies.com
+        to: ${{ secrets.EMAIL_RECIPIENTS }}
         from: Africanies Test Automation
         body: |
           Test Run Summary

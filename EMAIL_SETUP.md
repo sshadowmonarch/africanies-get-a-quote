@@ -26,12 +26,13 @@ After pushing to GitHub and configuring secrets, you'll receive automated emails
    - Navigate: **Settings** → **Secrets and variables** → **Actions**
    - Click **New repository secret**
    
-   Add these two secrets:
+   Add these three secrets:
    
    | Secret Name | Value |
    |------------|-------|
    | `EMAIL_USERNAME` | Your Gmail address (e.g., `yourname@gmail.com`) |
    | `EMAIL_PASSWORD` | The 16-character app password from step 1 |
+   | `EMAIL_RECIPIENTS` | Comma-separated emails (e.g., `armstrong.p@africanies.com,other@africanies.com`) |
 
 3. **Done!** Test it by manually triggering the workflow.
 
@@ -55,6 +56,7 @@ If you want to send from an `@africanies.com` email:
    |------------|-------|
    | `EMAIL_USERNAME` | Your Zoho email (e.g., `noreply@africanies.com`) |
    | `EMAIL_PASSWORD` | Your Zoho email password |
+   | `EMAIL_RECIPIENTS` | Comma-separated emails (e.g., `armstrong.p@africanies.com,other@africanies.com`) |
 
 3. **Commit and push** the workflow file changes.
 
@@ -115,19 +117,15 @@ This is an automated message from Africanies Test Automation
 
 ## 📝 Customization
 
-**Change recipient email:**
-Edit line 70 in `.github/workflows/playwright-test.yml`:
-```yaml
-to: new-email@africanies.com
-```
+**Change or add recipient emails:**
+No code changes needed! Simply update the `EMAIL_RECIPIENTS` secret in GitHub:
+1. Go to **Settings** → **Secrets and variables** → **Actions**
+2. Click **EMAIL_RECIPIENTS** and edit the value
+3. Use comma-separated emails: `armstrong.p@africanies.com,other@africanies.com,team@africanies.com`
+4. Commit any code changes if needed - the workflow will use the updated secret immediately
 
 **Send only on failure:**
-Change line 62 from `if: always()` to:
+Edit `.github/workflows/playwright-test.yml` line 62 from `if: always()` to:
 ```yaml
 if: failure()
-```
-
-**Add more recipients:**
-```yaml
-to: armstrong.p@africanies.com,another@africanies.com
 ```
