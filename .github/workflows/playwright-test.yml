@@ -66,14 +66,19 @@ jobs:
         server_port: 587
         username: ${{ secrets.EMAIL_USERNAME }}
         password: ${{ secrets.EMAIL_PASSWORD }}
-        subject: "Playwright Test Results - ${{ steps.playwright_tests.outcome == 'success' && '✅ PASSED' || '❌ FAILED' }}"
+        subject: "Get a Quote Test - ${{ steps.playwright_tests.outcome == 'success' && '✅ PASSED' || '❌ FAILED' }}"
         to: ${{ secrets.EMAIL_RECIPIENTS }}
         from: Africanies Test Automation
         body: |
-          Test Run Summary
-          ================
+          GET A QUOTE TEST SUMMARY
+          ========================
           
-          Status: ${{ steps.playwright_tests.outcome == 'success' && '✅ PASSED' || '❌ FAILED' }}
+          ${{ steps.playwright_tests.outcome == 'success' && format('Status: PASSED\n\nGet a quote works as expected: {0}', github.event.head_commit.timestamp) || format('Status: FAILED\n\nIn events status is fail please contact the software team\n\nTime: {0}', github.event.head_commit.timestamp) }}
+          
+          ================================================================================
+          TECHNICAL REPORT
+          ================================================================================
+          
           Repository: ${{ github.repository }}
           Branch: ${{ github.ref_name }}
           Commit: ${{ github.sha }}
@@ -83,8 +88,6 @@ jobs:
           
           View full report:
           ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          
-          Time: ${{ github.event.head_commit.timestamp }}
           
           ---
           This is an automated message from Africanies Test Automation
