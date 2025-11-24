@@ -1,0 +1,90 @@
+name: Playwright Tests
+
+on:
+  # Run on push to main branch
+  push:
+    branches: [ main, master ]
+  
+  # Run on pull requests
+  pull_request:
+    branches: [ main, master ]
+  
+  # Run every 8 hours starting at 6 AM UTC (6 AM, 2 PM, 10 PM)
+  schedule:
+    - cron: '0 6,14,22 * * *'
+  
+  # Allow manual trigger from GitHub Actions UI
+  workflow_dispatch:
+
+jobs:
+  test:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Install Playwright Browsers
+      run: npx playwright install --with-deps chromium
+    
+    - name: Run Playwright tests
+      id: playwright_tests
+      run: npx playwright test
+      continue-on-error: true
+    
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: playwright-report
+        path: playwright-report/
+        retention-days: 30
+    
+    - name: Upload test screenshots
+      uses: actions/upload-artifact@v4
+      if: failure()
+      with:
+        name: test-results
+        path: test-results/
+        retention-days: 30
+    
+    - name: Send email notification
+      if: always()
+      uses: dawidd6/action-send-mail@v3
+      with:
+        server_address: smtp.gmail.com
+        server_port: 587
+        username: ${{ secrets.EMAIL_USERNAME }}
+        password: ${{ secrets.EMAIL_PASSWORD }}
+        subject: "Playwright Test Results - ${{ steps.playwright_tests.outcome == 'success' && '✅ PASSED' || '❌ FAILED' }}"
+        to: armstrong.p@africanies.com
+        from: Africanies Test Automation
+        body: |
+          Test Run Summary
+          ================
+          
+          Status: ${{ steps.playwright_tests.outcome == 'success' && '✅ PASSED' || '❌ FAILED' }}
+          Repository: ${{ github.repository }}
+          Branch: ${{ github.ref_name }}
+          Commit: ${{ github.sha }}
+          Workflow: ${{ github.workflow }}
+          Run Number: ${{ github.run_number }}
+          Triggered by: ${{ github.event_name }}
+          
+          View full report:
+          ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          
+          Time: ${{ github.event.head_commit.timestamp }}
+          
+          ---
+          This is an automated message from Africanies Test Automation
