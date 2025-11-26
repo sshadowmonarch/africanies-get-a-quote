@@ -37,10 +37,22 @@ jobs:
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps chromium
     
-    - name: Run Playwright tests
+    - name: Run Playwright tests (Nigeria → US address only)
       id: playwright_tests
-      run: npx playwright test
+      run: npm run test:quote
       continue-on-error: true
+    
+    - name: Generate email report from JSON
+      if: always()
+      run: node generate-email-report.js
+    
+    - name: Load email body from file
+      if: always()
+      id: load_email
+      run: |
+        echo "body<<EOF" >> "$GITHUB_OUTPUT"
+        cat email-body.txt >> "$GITHUB_OUTPUT"
+        echo "EOF" >> "$GITHUB_OUTPUT"
     
     - name: Upload test results
       uses: actions/upload-artifact@v4
@@ -62,36 +74,11 @@ jobs:
       if: always()
       uses: dawidd6/action-send-mail@v3
       with:
-        server_address: smtp.gmail.com
+        server_address: smtp.zoho.com
         server_port: 587
         username: ${{ secrets.EMAIL_USERNAME }}
         password: ${{ secrets.EMAIL_PASSWORD }}
         subject: "Get a Quote Test - ${{ steps.playwright_tests.outcome == 'success' && '✅ PASSED' || '❌ FAILED' }}"
         to: ${{ secrets.EMAIL_RECIPIENTS }}
         from: Africanies Test Automation
-        body: |
-          GET A QUOTE TEST SUMMARY
-          ========================
-          
-          Status: ${{ steps.playwright_tests.outcome == 'success' && '✅ PASSED' || '❌ FAILED' }}
-          
-          ${{ steps.playwright_tests.outcome == 'success' && 'Get a quote works as expected' || 'In events status is fail please contact the software team' }}
-          
-          Time: ${{ github.event.head_commit.timestamp }}
-          
-          ================================================================================
-          TECHNICAL REPORT
-          ================================================================================
-          
-          Repository: ${{ github.repository }}
-          Branch: ${{ github.ref_name }}
-          Commit: ${{ github.sha }}
-          Workflow: ${{ github.workflow }}
-          Run Number: ${{ github.run_number }}
-          Triggered by: ${{ github.event_name }}
-          
-          View full report:
-          ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          
-          ---
-          This is an automated message from Africanies Test Automation
+        body: ${{ steps.load_email.outputs.body }}

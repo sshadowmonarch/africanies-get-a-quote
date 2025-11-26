@@ -3,7 +3,12 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "scripts": {},
+  "scripts": {
+    "test:quote": "npx playwright test tests/getAQuote.spec.js",
+    "test:warehouse": "npx playwright test tests/warehouseShipment.spec.js",
+    "report:quote": "npm run test:quote && node generate-email-report.js",
+    "report:warehouse": "npm run test:warehouse && node generate-email-report.js"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",

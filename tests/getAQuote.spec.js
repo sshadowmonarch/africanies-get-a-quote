@@ -90,7 +90,7 @@ test('Get A Quote Test', async ({ page }) => {
   await page1.getByPlaceholder('Enter Quantity').click();
   await page1.getByPlaceholder('Enter Quantity').fill('2');
   await page1.getByPlaceholder('Enter Item Value').click();
-  await page1.getByPlaceholder('Enter Item Value').fill('1000');
+  await page1.getByPlaceholder('Enter Item Value').fill('150000');
   
   // Make insurance note assertion more flexible
   await expect(page1.getByText(/Insurance is FREE for items valued up to/)).toBeVisible({ timeout: 10000 });
@@ -109,15 +109,75 @@ test('Get A Quote Test', async ({ page }) => {
   expect(quoteApiResponse.status()).toBeGreaterThanOrEqual(200);
   expect(quoteApiResponse.status()).toBeLessThan(400);
 
+  // Parse and validate response body contains required cost fields
+  const responseBody = await quoteApiResponse.json();
+  
+  // Validate that response contains data array with shipping options
+  expect(responseBody).toHaveProperty('data');
+  expect(Array.isArray(responseBody.data)).toBeTruthy();
+  expect(responseBody.data.length).toBeGreaterThan(0);
+  
+  console.log(`\n=== Validating ${responseBody.data.length} Shipping Methods ===\n`);
+  
+  // Loop through all shipping methods and report their cost fields
+  const methodReports = [];
+  
+  for (let i = 0; i < responseBody.data.length; i++) {
+    const method = responseBody.data[i];
+    console.log(`\n--- METHOD ${i + 1}: ${method.name} ---`);
+    
+    const report = {
+      index: i + 1,
+      name: method.name,
+      fields: {}
+    };
+    
+    // Check each cost field
+    const fieldsToCheck = [
+      'last_mile_delivery_cost',
+      'shippo_cost',
+      'insurance_cost',
+      'vat',
+      'total_amount',
+      'service_shipment_cost',
+      'initial_service_shipment_cost'
+    ];
+    
+    fieldsToCheck.forEach(field => {
+      if (method.hasOwnProperty(field)) {
+        const value = parseFloat(method[field]);
+        const status = value > 0 ? '✅' : '❌';
+        report.fields[field] = { value: method[field], present: true, greaterThanZero: value > 0 };
+        console.log(`${status} ${field}: ${method[field]}`);
+      } else {
+        report.fields[field] = { value: null, present: false, greaterThanZero: false };
+        console.log(`❌ ${field}: NOT PRESENT`);
+      }
+    });
+    
+    methodReports.push(report);
+  }
+  
+  // Store method reports in a global variable for the email report
+  global.methodReports = methodReports;
+  global.senderAddress = 'Nigeria (sender address from form)';
+  global.receiverAddress = '1600 Amphitheatre Parkway, Mountain View, CA 94043, USA';
+
+  // Log shipment metadata for email report generation
+  console.log('MODE: Ship from Nigeria to US Address');
+  console.log('SHIPMENT_FROM: Nigeria (sender address from form)');
+  console.log('SHIPMENT_TO: 1600 Amphitheatre Parkway, Mountain View, CA 94043, USA');
+  
+  console.log('\n=== All Shipping Methods Validated ===\\n');
+
   // Wait for quote results - use a more robust selector
   await page1.waitForSelector('button:has-text("Select")', { timeout: 30000 });
   await page1.getByText('Min. Est. Transit Time').first().click({ trial: true }).catch(() => {});
   await page1.getByRole('button', { name: 'Select' }).first().click();
   await expect(page1.getByRole('heading', { name: 'Login To Your Nigerian Account' })).toBeVisible({ timeout: 10000 });
   
-  // Log backend API validation results
-  console.log('\n=== Backend API Validation ===');
+  // Log final summary (without raw API body)
+  console.log('\n=== Backend API Validation Summary ===');
   console.log(`✅ Quote API Response Status: ${quoteApiResponse.status()} (${quoteApiResponse.statusText()})`);
-  console.log(`✅ All backend validations passed`);
   console.log('=== End API Validation ===\n');
 });
