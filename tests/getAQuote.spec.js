@@ -65,6 +65,11 @@ test('Get A Quote Test', async ({ page }) => {
   
   await expect(page1.getByRole('textbox', { name: 'Enter Address' }).first()).toBeVisible({ timeout: 15000 });
   
+  // Fill in sender address (Nigeria) in the FIRST address textbox
+  const senderAddress = '11 Ajibade Oke, Lagos, Nigeria';
+  await page1.getByRole('textbox', { name: 'Enter Address' }).first().click();
+  await page1.getByRole('textbox', { name: 'Enter Address' }).first().fill(senderAddress);
+  
   // Fill in receiver address manually to avoid autocomplete issues
   await page1.getByRole('textbox', { name: 'Enter Address' }).nth(1).click();
   await page1.getByRole('textbox', { name: 'Enter Address' }).nth(1).fill('1600 Amphitheatre Parkway');
@@ -160,12 +165,12 @@ test('Get A Quote Test', async ({ page }) => {
   
   // Store method reports in a global variable for the email report
   global.methodReports = methodReports;
-  global.senderAddress = 'Nigeria (sender address from form)';
+  global.senderAddress = senderAddress;
   global.receiverAddress = '1600 Amphitheatre Parkway, Mountain View, CA 94043, USA';
 
   // Log shipment metadata for email report generation
   console.log('MODE: Ship from Nigeria to US Address');
-  console.log('SHIPMENT_FROM: Nigeria (sender address from form)');
+  console.log(`SHIPMENT_FROM: ${senderAddress}`);
   console.log('SHIPMENT_TO: 1600 Amphitheatre Parkway, Mountain View, CA 94043, USA');
   
   console.log('\n=== All Shipping Methods Validated ===\\n');
